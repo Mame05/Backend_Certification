@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Annonce extends Model
 {
     use HasFactory;
+    protected $guarded=[];
+    
     public function structure()
     {
         return $this->belongsTo(Structure::class);

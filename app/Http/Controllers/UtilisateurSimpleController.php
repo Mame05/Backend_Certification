@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\UtilisateurSimple;
+//use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\StoreUtilisateurSimpleRequest;
 use App\Http\Requests\UpdateUtilisateurSimpleRequest;
-use App\Models\UtilisateurSimple;
 
 class UtilisateurSimpleController extends Controller
 {
@@ -13,7 +15,7 @@ class UtilisateurSimpleController extends Controller
      */
     public function index()
     {
-        //
+       //
     }
 
     /**
@@ -29,7 +31,7 @@ class UtilisateurSimpleController extends Controller
      */
     public function store(StoreUtilisateurSimpleRequest $request)
     {
-        //
+         //
     }
 
     /**
@@ -37,7 +39,7 @@ class UtilisateurSimpleController extends Controller
      */
     public function show(UtilisateurSimple $utilisateurSimple)
     {
-        //
+       //
     }
 
     /**
@@ -53,7 +55,7 @@ class UtilisateurSimpleController extends Controller
      */
     public function update(UpdateUtilisateurSimpleRequest $request, UtilisateurSimple $utilisateurSimple)
     {
-        //
+       //
     }
 
     /**

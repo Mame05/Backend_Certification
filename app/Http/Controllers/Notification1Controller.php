@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification1;
+use Illuminate\Http\JsonResponse;
 use App\Http\Requests\StoreNotification1Request;
 use App\Http\Requests\UpdateNotification1Request;
-use App\Models\Notification1;
 
 class Notification1Controller extends Controller
 {
@@ -13,54 +14,41 @@ class Notification1Controller extends Controller
      */
     public function index()
     {
-        //
+        $userId = auth()->user()->id; // Assurez-vous que l'utilisateur est authentifié
+
+        $notifications = Notification1::where('user_id', $userId)->get();
+
+        return response()->json([
+            'status' => true,
+            'notifications' => $notifications,
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+
+    public function unread()
     {
-        //
+        $userId = auth()->user()->id;
+
+        $unreadNotifications = Notification1::where('user_id', $userId)
+            ->where('statut', 'non-lu')
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'unread_notifications' => $unreadNotifications,
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreNotification1Request $request)
+    public function markAsRead($id)
     {
-        //
-    }
+        $notification = Notification1::where('user_id', auth()->user()->id)->find($id);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Notification1 $notification1)
-    {
-        //
-    }
+        if ($notification) {
+            $notification->statut = 'lu'; // Mettre à jour le statut
+            $notification->save();
+            return response()->json(['status' => true, 'message' => 'Notification marquée comme lue.']);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Notification1 $notification1)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateNotification1Request $request, Notification1 $notification1)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Notification1 $notification1)
-    {
-        //
+        return response()->json(['status' => false, 'message' => 'Notification non trouvée.'], 404);
     }
 }

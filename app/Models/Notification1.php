@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Notification1 extends Model
 {
     use HasFactory;
+
+    protected $table = 'notification1s'; // Spécifiez la table à utiliser
+
+    protected $guarded=[];
+    
     public function annonce()
     {
         return $this->belongsTo(Annonce::class);
