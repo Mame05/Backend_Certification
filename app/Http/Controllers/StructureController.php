@@ -184,25 +184,7 @@ class StructureController extends Controller
             return response()->json(['error' => 'Une erreur est survenue lors de la suppression.'], 500);
         }
     }
-    public function restore($id)
-    {
-        // Chercher une structure supprimée
-        $structure = Structure::onlyTrashed()->where('id', $id)->first();
-        
-        if (!$structure) {
-            return response()->json(['message' => 'Structure non trouvée ou déjà restaurée'], 404);
-        }
-        try {
-            // Restaurer la structure
-            $structure->restore();
-            
-            return response()->json(['message' => 'Structure restaurée avec succès', 'structure' => $structure], 200);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Une erreur est survenue : ' . $e->getMessage()], 500);
-        }
-
-       
-    }
+    
     
 
     /**
