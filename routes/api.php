@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnnonceController;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\StructureController;
+use App\Http\Controllers\BanqueSangController;
 use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\Notification1Controller;
 
@@ -36,9 +37,11 @@ Route::post('notifications1/{id}/read', [Notification1Controller::class, 'markAs
 Route::post('annonces/{annonceId}/inscrire', [RendezVousController::class, 'inscrire']);
 Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annulerInscription']);
 
-
-
+// Banque de sang
+Route::apiResource('banque-sangs', BanqueSangController::class);
 });
+
+
 
 
 
