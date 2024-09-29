@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Banque_sang;
 use App\Http\Requests\StoreBanque_sangRequest;
 use App\Http\Requests\UpdateBanque_sangRequest;
-use App\Models\Banque_sang;
 
 class BanqueSangController extends Controller
 {
@@ -29,7 +29,7 @@ class BanqueSangController extends Controller
      */
     public function store(StoreBanque_sangRequest $request)
     {
-        //
+         //
     }
 
     /**
@@ -37,7 +37,7 @@ class BanqueSangController extends Controller
      */
     public function show(Banque_sang $banque_sang)
     {
-        //
+       //
     }
 
     /**
