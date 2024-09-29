@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AnnonceController;
 use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\BanqueSangController;
 use App\Http\Controllers\RendezVousController;
@@ -39,8 +40,10 @@ Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annuler
 
 // Banque de sang
 Route::apiResource('banque-sangs', BanqueSangController::class);
-});
 
+// Section
+Route::apiResource('sections', SectionController::class);
+});
 
 
 
