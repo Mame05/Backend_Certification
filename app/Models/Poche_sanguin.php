@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Poche_sanguin extends Model
 {
     use HasFactory;
+    protected $guarded = [];
     public function section()
     {
         return $this->belongsTo(Section::class);

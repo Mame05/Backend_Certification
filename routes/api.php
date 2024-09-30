@@ -8,6 +8,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\BanqueSangController;
 use App\Http\Controllers\RendezVousController;
+use App\Http\Controllers\PocheSanguinController;
 use App\Http\Controllers\Notification1Controller;
 
 Route::get('/user', function (Request $request) {
@@ -43,6 +44,9 @@ Route::apiResource('banque-sangs', BanqueSangController::class);
 
 // Section
 Route::apiResource('sections', SectionController::class);
+
+// Poche sanguine
+Route::apiResource('poche-sanguins', PocheSanguinController::class);
 });
 
 
