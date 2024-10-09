@@ -15,8 +15,8 @@ class Banque_sang extends Model
         return $this->belongsTo(Structure::class);
     }
 
-    public function sections()
+    public function pocheSanguins()
     {
-        return $this->hasMany(Section::class);
+        return $this->hasMany(Poche_sanguin::class);
     }
 }

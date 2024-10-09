@@ -9,8 +9,16 @@ class Poche_sanguin extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    public function section()
+    public function banquesang()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(Banque_Sang::class);
+    }
+    public function rendezVous()
+    {
+        return $this->belongsTo(Rendez_vous::class);
+    }
+    public function donneurExterne()
+    {
+        return $this->belongsTo(Donneur_externe::class);
     }
 }

@@ -22,4 +22,8 @@ class Rendez_vous extends Model
     {
         return $this->hasMany(Notification2::class);
     }
+    public function pocheSanguins()
+    {
+        return $this->hasMany(Poche_sanguin::class);
+    }
 }

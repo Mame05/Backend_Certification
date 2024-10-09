@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
 use App\Models\UtilisateurSimple;
 use App\Http\Controllers\Controller;
 
@@ -68,10 +70,10 @@ class ApiController extends Controller
 
 
 // connexion
-public function login(Request $request)
+/*public function login(Request $request)
 {
     // Validation des données
-    $validator = validator(
+    /$validator = validator(
         $request->all(),
         [
             'email' => 'required|email|string',
@@ -94,11 +96,51 @@ public function login(Request $request)
         "access_token" => $token,
         "token_type" => "bearer",
         "user" => auth()->user(),
-        "expires_in" => env("JwT_TTL") * 30  . 'seconds'
+        "expires_in" => env("JWT_TTL") * 60  . 'seconds'
     ]);
-}
+}*/
 
-// déconnexion
+public function login(Request $request)
+    {
+        // Validation des données
+        $validator = validator($request->all(), [
+            'email' => ['required', 'email', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Vérifier si l'utilisateur existe
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'message' => 'Utilisateur non trouvé',
+            ], 404); // User not found
+        }
+
+        // Vérifier si le mot de passe est correct
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'message' => 'Mot de passe incorrect',
+            ], 401); // Incorrect password
+        }
+
+        // Authentification réussie, générer le token
+        $token = auth()->guard('api')->login($user);
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'user' => $user,
+            'expires_in' => auth()->guard('api')->factory()->getTTL() * 60, // Expiration en secondes
+        ]);
+    }
+
+    // déconnexion
 public function logout(Request $request){
     auth()->logout();
     return response()->json([
@@ -151,7 +193,7 @@ public function refreshToken(Request $request){
     return response()->json([
         "access_token" => $token,
         "token_type" => "bearer",
-        "expires_in" => env("JWT_TTL") * 30  .'seconds'
+        "expires_in" => env("JWT_TTL") * 60  .'seconds'
     ]);
 }
 }

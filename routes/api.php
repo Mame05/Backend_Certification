@@ -42,9 +42,6 @@ Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annuler
 // Banque de sang
 Route::apiResource('banque-sangs', BanqueSangController::class);
 
-// Section
-Route::apiResource('sections', SectionController::class);
-
 // Poche sanguine
 Route::apiResource('poche-sanguins', PocheSanguinController::class);
 });
