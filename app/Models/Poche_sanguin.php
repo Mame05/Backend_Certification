@@ -17,8 +17,8 @@ class Poche_sanguin extends Model
     {
         return $this->belongsTo(Rendez_vous::class);
     }
-    public function donneurExterne()
+    public function donneur_externe()
     {
-        return $this->belongsTo(Donneur_externe::class);
+        return $this->belongsTo(DonneurExterne::class);
     }
 }

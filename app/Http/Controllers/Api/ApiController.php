@@ -135,6 +135,7 @@ public function login(Request $request)
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
+            'role_id' => $user->role_id, // Inclure le role_id dans la réponse
             'user' => $user,
             'expires_in' => auth()->guard('api')->factory()->getTTL() * 60, // Expiration en secondes
         ]);

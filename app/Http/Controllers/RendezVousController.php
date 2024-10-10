@@ -176,4 +176,39 @@ class RendezVousController extends Controller
     return response()->json(['message' => 'Inscription annulée avec succès, et la structure a été notifiée.'], 200);
 }
 
+public function updateEtat(Request $request, Rendez_vous $rendezVous)
+    {
+        // Obtenir l'utilisateur authentifié
+        $user = auth()->user();
+
+        // Vérifiez si l'utilisateur a le rôle de structure (role_id = 2)
+        if ($user->role_id !== 2) {
+            return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de modifier cet état.'], 403);
+        }
+
+        // Récupérer l'annonce liée au rendez-vous
+        $annonce = Annonce::findOrFail($rendezVous->annonce_id);
+
+        // Vérifiez que l'annonce appartient à la structure (utilisateur)
+        if ($annonce->structure->user_id !== $user->id) {
+            return response()->json(['error' => 'Vous ne pouvez modifier l\'état que sur vos propres annonces.'], 403);
+        }
+
+        // Valider les données (par exemple, pour la colonne 'etat')
+        $validator = validator($request->all(), [
+            'etat' => 'required|boolean', // Valider que l'état est bien un booléen
+        ]);
+
+        // Si la validation échoue, renvoyer les erreurs
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Mettre à jour l'état du rendez-vous
+        $rendezVous->etat = $request->etat;
+        $rendezVous->save();
+
+        return response()->json(['message' => 'L\'état du rendez-vous a été mis à jour avec succès!']);
+    }
+
 }

@@ -55,7 +55,15 @@ class RolesPermissionsTableSeeder extends Seeder
         //                         "Voir details d'une annonce",
         //                         "Voir son stock",
         //                         "valider un don",
-        //                         "ne pas valider un don"
+        //                         "ne pas valider un don",
+        //                         "Voir les utilisateurs_simple inscrits dans la plateforme"
+        //                         "Voir les donneurs d'une structure",
+        //                            "Ajouter un donneur_externe",
+         //                           "Modifier un donneur_externe",
+         //                           "Supprimer un donneur_externe",
+        //                            "Voir la liste des donneurs_externes",
+        //                            "Voir details d'un donneur_externe"
+        //                         
         // );
 
         $role = Role::create(['name' => "utilisateur_simple"]);
