@@ -34,6 +34,8 @@ class DonneurExterneController extends Controller
             'date_naiss' => ['required', 'date'],
             'profession' => ['required', 'string', 'max:255'],
             'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
+
+            
         ]);
         // Si les données ne sont pas valides, renvoyer les erreurs
         if ($validator->fails()) {

@@ -301,7 +301,24 @@ public function getUsersWithCompletedInscriptions()
     $utilisateurs = UtilisateurSimple::whereHas('rendezVous', function ($query) use ($annonces) {
         $query->whereIn('annonce_id', $annonces)
               ->where('etat', true); // Vérifier si l'état est true
-    })->get();
+    })->withCount(['rendezVous as nombre_de_dons' => function ($query) {
+        $query->where('etat', true);
+    }])->get()->map(function ($utilisateur) {
+        $dernierDon = $utilisateur->rendezVous()
+        ->where('etat', true)
+        ->latest('created_at') // Récupérer le dernier rendez-vous avec état `true`
+        ->first();
+
+        // Formater la date pour l'affichage
+        $dernierDonDate = $dernierDon ? $dernierDon->created_at->format('Y-m-d') : 'Aucun don';
+        return [
+            'nom_complet' => $utilisateur->prenom . ' ' . $utilisateur->nom,
+            'telephone' => $utilisateur->telephone,
+            'groupe_sanguin' => $utilisateur->groupe_sanguin, // Assurez-vous que cette colonne existe dans votre modèle
+            'nombre_de_dons' => $utilisateur->nombre_de_dons,
+            'dernier_don' => $dernierDonDate,
+        ];
+    });
 
     // Vérifier si des utilisateurs sont trouvés
     if ($utilisateurs->isEmpty()) {

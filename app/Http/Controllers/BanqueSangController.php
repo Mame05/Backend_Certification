@@ -66,17 +66,17 @@ class BanqueSangController extends Controller
 
     
     // Valider les données de la banque de sang
-    $validator = validator(
-    $request->all(),
-    [
-        'matricule' => ['required', 'string','max:255', 'unique:banque_sangs'],
-    ]
-);
+//     $validator = validator(
+//     $request->all(),
+//     [
+//         //'matricule' => ['required', 'string','max:255', 'unique:banque_sangs'],
+//     ]
+// );
 
-    // Si les données ne sont pas valides, renvoyer les erreurs
-    if ($validator->fails()) {
-    return response()->json(['error' => $validator->errors()], 422);
-    }
+//     // Si les données ne sont pas valides, renvoyer les erreurs
+//     if ($validator->fails()) {
+//     return response()->json(['error' => $validator->errors()], 422);
+//     }
 
      // Récupérez la structure associée à l'utilisateur
      $structure = Structure::where('user_id', $user->id)->first(); // Récupérer la structure par l'user_id
@@ -85,10 +85,10 @@ class BanqueSangController extends Controller
      if (!$structure) {
          return response()->json(['error' => 'Aucune structure associée à cet utilisateur.'], 404);
      }
-
+     $matricule = $structure->sigle . '-' . strtoupper(substr(uniqid(), -4));
     // Créer une nouvelle banque de sang
     $banque_sang = new Banque_sang();
-    $banque_sang->matricule = $request->matricule;
+    $banque_sang->matricule = $matricule;
     $banque_sang->stock_actuelle =  0;
     $banque_sang->date_mise_a_jour =  null;
     $banque_sang->structure_id = $structure->id; // Utiliser l'id de la structure
