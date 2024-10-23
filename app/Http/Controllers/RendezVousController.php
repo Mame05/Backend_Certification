@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Annonce;
 use App\Models\Structure;
+use App\Models\Poche_sanguin;
+use App\Models\Banque_sang;
 use App\Models\Rendez_vous;
 use Illuminate\Http\Request;
 use App\Models\Notification1;
@@ -185,7 +187,12 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         if ($user->role_id !== 2) {
             return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de modifier cet état.'], 403);
         }
+        $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
 
+        // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
+        if ($banqueSang->structure->user_id !== $user->id) {
+            return response()->json(['error' => 'Vous ne pouvez ajouter des poches que dans votre banque de sang.'], 403);
+        }
         // Récupérer l'annonce liée au rendez-vous
         $annonce = Annonce::findOrFail($rendezVous->annonce_id);
 
@@ -207,8 +214,28 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         // Mettre à jour l'état du rendez-vous
         $rendezVous->etat = $request->etat;
         $rendezVous->save();
+        $numero_poche = 'POCHE-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+        // Créer une nouvelle poche de sanguin
+        $poche_sanguin = new Poche_sanguin();
+        $poche_sanguin->numero_poche = $numero_poche;
+        $poche_sanguin->groupe_sanguin = $request->groupe_sanguin;
+        $poche_sanguin->date_prelevement = $request->date_prelevement;
+        $poche_sanguin->banque_sang_id = $request->banque_sang_id;
+        $poche_sanguin->rendez_vouse_id = $rendezVous->id;
+        $poche_sanguin->donneur_externe_id = $request->donneur_externe_id;
+        $poche_sanguin->save();
 
-        return response()->json(['message' => 'L\'état du rendez-vous a été mis à jour avec succès!']);
+         // Mettre à jour le stock et la date de mise à jour
+        $banqueSang->stock_actuelle += 1; // Incrémenter le stock actuel
+        $banqueSang->date_mise_a_jour = now(); // Mettre à jour la date de mise à jour avec la date actuelle
+        $banqueSang->save();
+
+        return response()->json([
+            'rendezVous' => $rendezVous,
+            'poche_sanguin' => $poche_sanguin,
+            'data' => $poche_sanguin,
+            
+            'message' => 'L\'état du rendez-vous a été mis à jour avec succès!']);
     }
 
     public function getInscriptions()
