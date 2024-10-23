@@ -211,4 +211,112 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         return response()->json(['message' => 'L\'état du rendez-vous a été mis à jour avec succès!']);
     }
 
+    public function getInscriptions()
+{
+    // Obtenez l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Trouver l'utilisateur simple associé à cet ID utilisateur
+    $utilisateur_simple = UtilisateurSimple::where('user_id', $user->id)->first();
+
+    if (!$utilisateur_simple) {
+        return response()->json(['error' => 'Utilisateur simple non trouvé.'], 404);
+    }
+     // Date actuelle
+     $dateActuelle = now();
+
+     // Récupérer les inscriptions en cours (annonces dont la date de fin est > date actuelle)
+     $inscriptionsEnCours = Rendez_vous::where('utilisateur_simple_id', $utilisateur_simple->id)
+         ->whereHas('annonce', function ($query) use ($dateActuelle) {
+             $query->where('date_fin', '>', $dateActuelle);
+         })
+         ->with('annonce') // Charger aussi les détails de l'annonce
+         ->get();
+ 
+     // Récupérer les inscriptions historiques (annonces dont la date de fin est <= date actuelle)
+     $historiqueInscriptions = Rendez_vous::where('utilisateur_simple_id', $utilisateur_simple->id)
+         ->whereHas('annonce', function ($query) use ($dateActuelle) {
+             $query->where('date_fin', '<=', $dateActuelle);
+         })
+         ->with('annonce')
+         ->get();
+ 
+     return response()->json([
+         'inscriptionsEnCours' => $inscriptionsEnCours,
+         'historiqueInscriptions' => $historiqueInscriptions
+     ]);
+}
+public function supprimerHistorique($rendezVousId)
+{
+    // Obtenez l'utilisateur authentifié
+    $user = auth()->user();
+    
+    // Trouver le rendez-vous par son ID
+    $rendez_vous = Rendez_vous::with('annonce')->find($rendezVousId);
+
+    // Vérifier que l'utilisateur est bien celui qui a pris le rendez-vous
+    if ($rendez_vous && $rendez_vous->utilisateur_simple_id == $user->utilisateur_simple->id) {
+
+        // Vérifier que la date de fin de l'annonce est passée
+        if ($rendez_vous->annonce->date_fin < now()) {
+            // Supprimer le rendez-vous
+            $rendez_vous->delete();
+            return response()->json(['message' => 'Historique supprimé avec succès.']);
+        } else {
+            return response()->json(['error' => 'Seules les inscriptions à des annonces passées peuvent être supprimées.'], 403);
+        }
+    }
+
+    return response()->json(['error' => 'Suppression non autorisée.'], 403);
+}
+
+// Methode qui permet de recuperer les donneurs pour 
+public function getUsersWithCompletedInscriptions()
+{
+    // Obtenir l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Vérifier que l'utilisateur est bien une structure
+    if ($user->role_id !== 2) {
+        return response()->json(['message' => 'Seules les structures peuvent accéder à cette ressource.'], 403);
+    }
+
+    // Récupérer la structure correspondante
+    $structure = Structure::where('user_id', $user->id)->first();
+
+    // Vérifier si la structure existe
+    if (!$structure) {
+        return response()->json(['message' => 'Structure non trouvée.'], 404);
+    }
+
+    // Récupérer toutes les annonces de la structure
+    $annonces = Annonce::where('structure_id', $structure->id)->pluck('id');
+
+    // Vérifier si des annonces sont trouvées
+    if ($annonces->isEmpty()) {
+        return response()->json(['message' => 'Aucune annonce trouvée pour cette structure.'], 404);
+    }
+
+    // Récupérer les utilisateurs simples qui ont des inscriptions avec l'état booléen true
+    $utilisateurs = UtilisateurSimple::whereHas('rendezVous', function ($query) use ($annonces) {
+        $query->whereIn('annonce_id', $annonces)
+              ->where('etat', true); // Vérifier si l'état est true
+    })->get();
+
+    // Vérifier si des utilisateurs sont trouvés
+    if ($utilisateurs->isEmpty()) {
+        return response()->json(['message' => 'Aucun utilisateur trouvé avec des inscriptions complétées.'], 404);
+    }
+
+    // Retourner les utilisateurs
+    return response()->json($utilisateurs);
+}
+
+
+
+
+
+ 
+
+
 }

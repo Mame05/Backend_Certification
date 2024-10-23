@@ -21,9 +21,33 @@ class AnnonceController extends Controller
      */
     public function index()
     {
-        //Afficher la liste des annonces
+        // Récupérer l'utilisateur authentifié
+        $user = auth()->user();
+       // Vérifier si l'utilisateur a le rôle de structure (role_id = 2)
+    if ($user->role_id == 2) {
+        // Récupérer la structure de cet utilisateur
+        $structure = Structure::where('user_id', $user->id)->first();
+
+        // Si la structure existe, récupérer ses annonces
+        if ($structure) {
+            $annonces = Annonce::where('structure_id', $structure->id)->get();
+            // Retourner les annonces au format JSON
+            return response()->json($annonces);
+        } else {
+            return response()->json(['message' => 'Structure non trouvée'], 404);
+        }
+    }
+     // Vérifier si l'utilisateur a le rôle d'admin ou d'utilisateur simple
+     elseif ($user->role_id == 1 || $user->role_id == 3 ) { 
+        // Récupérer toutes les annonces
         $annonces = Annonce::all();
         return response()->json($annonces);
+    }  
+    else {
+        // Si l'utilisateur n'a pas les droits, renvoyer une réponse d'accès refusé
+        return response()->json(['message' => 'Accès non autorisé'], 403);
+    }
+        
     }
 
     /**
@@ -56,11 +80,11 @@ class AnnonceController extends Controller
         'nom_lieu' => ['required', 'string', 'max:255'],
         'adresse_lieu' => ['required', 'string', 'max:255'],
         'date_debut' => ['required', 'date'],
-        'date_fin' => ['required', 'date'],
+        'date_fin' => ['nullable', 'date'],
         'heure_debut' => ['required', 'date_format:H:i'],
-        'heure_fin' => ['required', 'date_format:H:i'],
+        'heure_fin' => ['nullable', 'date_format:H:i'],
         'groupe_sanguin_requis' => ['required_if:type_annonce,besoin_urgence', 'string', 'max:30'],
-        'nombre_poches_vise' => ['required', 'integer'],
+        'nombre_poches_vise' => ['nullable', 'integer'],
         'description' => ['required', 'string'],
         'contact_responsable' => ['required', 'string',  'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
     ]
@@ -112,8 +136,6 @@ if ($annonce->type_annonce == 'collecte') {
 
 // Envoyer les notifications aux utilisateurs sélectionnés
 foreach ($utilisateursSimples as $utilisateur_simple) {
-    // Envoi de la notification via la méthode notify()
-    //$utilisateur_simple->notify(new AnnoncePublishedNotification($annonce));
 
     // Enregistrement de la notification dans notification1s
     $notification = new Notification1();
@@ -133,8 +155,35 @@ foreach ($utilisateursSimples as $utilisateur_simple) {
     /**
      * Display the specified resource.
      */
-    public function show(Annonce $annonce)
+   /* public function show(Annonce $annonce)
     {
+         // Obtenir l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Vérifier si l'utilisateur a le rôle de structure
+    if ($user->role_id !== 2) {
+        return response()->json(['message' => 'Accès non autorisé'], 403);
+    }
+
+    // Vérifier si l'utilisateur est associé à la structure de l'annonce
+    $structure = Structure::where('user_id', $user->id)->first();
+    if (!$structure || $structure->id !== $annonce->structure_id) {
+        return response()->json(['message' => 'Accès non autorisé'], 403);
+    }
+        // Compte le nombre d'inscrits pour cette annonce
+    $nombreInscrits = $annonce->rendezVous()->count(); // Utilise la relation définie
+
+     // Récupérer les informations des utilisateurs inscrits et l'ID des rendez-vous
+     $inscrits = $annonce->rendezVous()->with('utilisateurSimple')->get()->map(function($rendezVous) {
+        return [
+            'id' => $rendezVous->id, // ID du rendez-vous
+            //'id' => $rendezVous->utilisateurSimple->id,
+            'utilisateur_id' => $rendezVous->utilisateurSimple->id, // ID de l'utilisateur
+            'nom' => $rendezVous->utilisateurSimple->nom,
+            'prenom' => $rendezVous->utilisateurSimple->prenom,
+            'etat' => $rendezVous->etat, // État du rendez-vous
+        ];
+    });
         return response()->json([
             'titre' => $annonce->titre,
             'type_annonce' => $annonce->type_annonce,
@@ -148,9 +197,82 @@ foreach ($utilisateursSimples as $utilisateur_simple) {
             'nombre_poches_vise' => $annonce->nombre_poches_vise,
             'description' => $annonce->description,
             'contact_responsable' => $annonce->contact_responsable,
-            'structure' => $annonce->structure
+            'structure' => $annonce->structure,
+            'nombre_inscrits' => $nombreInscrits, // Ajoute le nombre d'inscrits ici
+            'inscrits' => $inscrits, // Informations sur les inscrits
         ]);
+    }*/
+    public function show(Annonce $annonce)
+{
+    // Obtenir l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Récupérer les informations générales de l'annonce
+    $annonceDetails = [
+        'titre' => $annonce->titre,
+        'type_annonce' => $annonce->type_annonce,
+        'nom_lieu' => $annonce->nom_lieu,
+        'adresse_lieu' => $annonce->adresse_lieu,
+        'date_debut' => $annonce->date_debut,
+        'date_fin' => $annonce->date_fin,
+        'heure_debut' => $annonce->heure_debut,
+        'heure_fin' => $annonce->heure_fin,
+        'groupe_sanguin_requis' => $annonce->groupe_sanguin_requis,
+        'nombre_poches_vise' => $annonce->nombre_poches_vise,
+        'description' => $annonce->description,
+        'contact_responsable' => $annonce->contact_responsable,
+        'structure' => $annonce->structure,
+    ];
+
+    // Si l'utilisateur est authentifié
+    if ($user) {
+        // Si l'utilisateur est un administrateur (role_id = 1), il peut voir tous les détails
+        if ($user->role_id === 1) {
+            return response()->json($annonceDetails);
+        }
+
+        // Si l'utilisateur est une structure (role_id = 2), vérifier s'il est lié à cette annonce
+        if ($user->role_id === 2) {
+            $structure = Structure::where('user_id', $user->id)->first();
+            if (!$structure || $structure->id !== $annonce->structure_id) {
+                return response()->json(['message' => 'Accès non autorisé'], 403);
+            }
+
+            // Compter le nombre d'inscrits
+            $nombreInscrits = $annonce->rendezVous()->count();
+
+            // Récupérer les informations des utilisateurs inscrits
+            $inscrits = $annonce->rendezVous()->with('utilisateurSimple')->get()->map(function($rendezVous) {
+                return [
+                    'id' => $rendezVous->id, // ID du rendez-vous
+                    'utilisateur_id' => $rendezVous->utilisateurSimple->id, // ID de l'utilisateur
+                    'nom' => $rendezVous->utilisateurSimple->nom,
+                    'prenom' => $rendezVous->utilisateurSimple->prenom,
+                    'etat' => $rendezVous->etat, // État du rendez-vous
+                ];
+            });
+
+            // Ajouter le nombre d'inscrits et la liste des inscrits aux détails de l'annonce
+            $annonceDetails['nombre_inscrits'] = $nombreInscrits;
+            $annonceDetails['inscrits'] = $inscrits;
+
+            return response()->json($annonceDetails);
+        }
+
+        // Si l'utilisateur est un utilisateur simple (role_id = 3), il peut voir l'annonce sans certaines informations sensibles
+        if ($user->role_id === 3) {
+             // Compter le nombre d'inscrits
+             $nombreInscrits = $annonce->rendezVous()->count();
+             $annonceDetails['nombre_inscrits'] = $nombreInscrits;
+            return response()->json($annonceDetails);
+
+        }
     }
+
+    // Pour les utilisateurs non authentifiés ou pour les rôles non gérés, retourner une réponse par défaut
+    return response()->json(['message' => 'Accès non autorisé ou utilisateur non authentifié'], 403);
+}
+
 
     /**
      * Show the form for editing the specified resource.

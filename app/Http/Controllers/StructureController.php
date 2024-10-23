@@ -45,7 +45,7 @@ class StructureController extends Controller
             [
                 'nom_structure' => ['required', 'string', 'max:255', 'unique:structures'],
                 'sigle' => ['required', 'string'],
-                'telephone' => ['required', 'string', 'unique:utilisateur_simples', 'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
+                'telephone' => ['required', 'string', 'unique:structures', 'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
                 'adresse' => ['required', 'string'],
                 'region' => ['required', 'string'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
@@ -87,18 +87,36 @@ class StructureController extends Controller
 
     /**
      * Display the specified resource.
-     */
-    public function show(Structure $structure)
+     */ 
+    public function show(Structure $structure) 
     {
         return response()->json([
             'nom_structure' => $structure->nom_structure,
-            'email' => $structure->user->email,  // Assurez-vous que la relation est correcte
+            'email' => $structure->user->email,  // Relation avec l'utilisateur
             'sigle' => $structure->sigle,
             'telephone' => $structure->telephone,
             'adresse' => $structure->adresse,
             'region' => $structure->region,
+            'banques_de_sang' => $structure->banqueSangs->map(function($banque) {
+                return [
+                    'matricule' => $banque->matricule,
+                    'stock_actuelle' => $banque->stock_actuelle,
+                    'date_mise_a_jour' => $banque->date_mise_a_jour,
+                    'poches_de_sang' => $banque->pocheSanguins->map(function($poche) {
+                        return [
+                            'numero_poche' => $poche->numero_poche,
+                            'groupe_sanguin' => $poche->groupe_sanguin,
+                            'date_prelevement' => $poche->date_prelevement,
+                            'date_expiration' => $poche->date_expiration,
+                        ];
+                    })
+                ];
+            })
         ]);
     }
+    
+    
+    
 
     /**
      * Show the form for editing the specified resource.

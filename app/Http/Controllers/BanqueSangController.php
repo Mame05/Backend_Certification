@@ -14,12 +14,35 @@ class BanqueSangController extends Controller
      */
     public function index()
     {
+        // Récupérer l'utilisateur authentifié
+        $user = auth()->user();
+       // Vérifier si l'utilisateur a le rôle de structure (role_id = 2)
+    if ($user->role_id == 2) {
+        // Récupérer la structure de cet utilisateur
+        $structure = Structure::where('user_id', $user->id)->first();
+
+        // Si la structure existe, récupérer ses annonces
+        if ($structure) {
+            $banques_sang = Banque_sang::where('structure_id', $structure->id)->get();
+            // Retourner les banque de sang au format JSON
+            return response()->json($banques_sang);
+        } else {
+            return response()->json(['message' => 'Structure non trouvée'], 404);
+        }
+    }
+    // Vérifier si l'utilisateur a le rôle d'admin ou d'utilisateur simple
+    elseif ($user->role_id == 1 || $user->role_id == 3 ) { 
         // Récupérer toutes les banques de sang
         $banques_sang = Banque_sang::all();
         
         // Retourner les banques de sang sous forme de JSON
         return response()->json($banques_sang);
     }
+    else {
+        // Si l'utilisateur n'a pas les droits, renvoyer une réponse d'accès refusé
+        return response()->json(['message' => 'Accès non autorisé'], 403);
+    }
+}
 
     /**
      * Show the form for creating a new resource.
@@ -47,8 +70,6 @@ class BanqueSangController extends Controller
     $request->all(),
     [
         'matricule' => ['required', 'string','max:255', 'unique:banque_sangs'],
-        'stock_actuelle' => ['required', 'integer', 'min:0'],
-        'date_mise_a_jour' => ['required', 'date'],
     ]
 );
 
@@ -68,8 +89,8 @@ class BanqueSangController extends Controller
     // Créer une nouvelle banque de sang
     $banque_sang = new Banque_sang();
     $banque_sang->matricule = $request->matricule;
-    $banque_sang->stock_actuelle = $request->stock_actuelle;
-    $banque_sang->date_mise_a_jour = $request->date_mise_a_jour;
+    $banque_sang->stock_actuelle =  0;
+    $banque_sang->date_mise_a_jour =  null;
     $banque_sang->structure_id = $structure->id; // Utiliser l'id de la structure
     $banque_sang->save();
 
@@ -85,11 +106,31 @@ class BanqueSangController extends Controller
      */
     public function show(Banque_sang $banque_sang)
     {
+        // Récupérer les poches associées à la banque de sang
+         $poches = $banque_sang->pocheSanguins; // Utilisez la méthode correcte pour récupérer les poches
+
+        // Initialiser le tableau pour les groupes sanguins
+        $groupes_sanguins = [];
+
+        // Vérifier si la collection n'est pas vide
+        if ($poches) {
+            foreach ($poches as $poche) {
+            // Supposons que chaque poche a un attribut `groupe_sanguin`
+                $groupe = $poche->groupe_sanguin; // Assurez-vous que cet attribut existe dans le modèle Poche_sanguin
+            
+                if (!isset($groupes_sanguins[$groupe])) {
+                    $groupes_sanguins[$groupe] = 0;
+                }
+                $groupes_sanguins[$groupe]++;
+            }
+        }
+
+        // Retourner les informations de la banque de sang et les groupes sanguins au format JSON
         return response()->json([
             'matricule' => $banque_sang->matricule,
             'stock_actuelle' => $banque_sang->stock_actuelle,
             'date_mise_a_jour' => $banque_sang->date_mise_a_jour,
-            'structure' => $banque_sang->structure
+            'groupes_sanguins' => $groupes_sanguins, // Ajout des groupes sanguins et leurs comptes
         ]
         );
     }
@@ -136,8 +177,6 @@ class BanqueSangController extends Controller
         $request->all(),
         [
             'matricule' => ['required', 'string','max:255'],
-            'stock_actuelle' => ['required', 'integer', 'min:0'],
-            'date_mise_a_jour' => ['required', 'date'],
         ]
     );
     
@@ -146,7 +185,7 @@ class BanqueSangController extends Controller
         return response()->json(['error' => $validator->errors()], 422);
         }
         // Mettre à jour la banque
-        $banque_sang->update($request->only('matricule', 'stock_actuelle', 'date_mise_a_jour'));
+        $banque_sang->update($request->only('matricule'));
 
         return response()->json([
             'status' => true,

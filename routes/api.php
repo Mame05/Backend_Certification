@@ -19,12 +19,14 @@ Route::get('/user', function (Request $request) {
 
 Route::post("register", [ApiController::class, "register"]);
 Route::post("login", [ApiController::class, "login"]);
-Route::group([
-    "middleware" => ["auth"]
-], function(){
+
+Route::middleware('auth:api')->group(function () {
+
 Route::get("logout", [ApiController::class, "logout"]);
 Route::get("refresh", [ApiController::class, "refreshToken"]);
 Route::get("profile", [ApiController::class, "profile"]);
+Route::put("updateProfile", [ApiController::class, "updateProfile"]);
+Route::get("profileStructure", [ApiController::class, "profileStructure"]);
 
 // CRUD Structures
 Route::apiResource('structures', StructureController::class);
@@ -35,11 +37,19 @@ Route::apiResource('annonces', AnnonceController::class);
 // Notifications
 Route::get('notifications1', [Notification1Controller::class, 'index']);
 Route::get('notifications1/unread', [Notification1Controller::class, 'unread']);
-Route::post('notifications1/{id}/read', [Notification1Controller::class, 'markAsRead']);
+Route::put('notifications1/{id}/read', [Notification1Controller::class, 'markAsRead']);
+Route::delete('notifications1/{id}', [Notification1Controller::class, 'destroy']);
+
 
 // Rendez-vous
 Route::post('annonces/{annonceId}/inscrire', [RendezVousController::class, 'inscrire']);
 Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annulerInscription']);
+Route::get('/user/inscriptions', [RendezVousController::class, 'getInscriptions']);// permet d'obtenir les inscriptions d'un utilisateur
+Route::delete('/rendez-vous/{id}/supprimer', [RendezVousController::class, 'supprimerHistorique']);
+Route::get('/structure/utilisateurs-inscriptions', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);
+
+
+
 // Valider un don
 Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtat']);
 
@@ -48,6 +58,7 @@ Route::apiResource('banque-sangs', BanqueSangController::class);
 
 // Poche sanguine
 Route::apiResource('poche-sanguins', PocheSanguinController::class);
+// Route::apiResource('poche-sanguins', PocheSanguinController::class);
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);
@@ -55,7 +66,6 @@ Route::apiResource('donneur-externes', DonneurExterneController::class);
 
 
 });
-
 
 
 

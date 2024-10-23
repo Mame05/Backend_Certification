@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Banque_sang;
 use App\Models\Poche_sanguin;
+use App\Models\Structure;
 use App\Http\Requests\StorePoche_sanguinRequest;
 use App\Http\Requests\UpdatePoche_sanguinRequest;
 
@@ -13,11 +14,42 @@ class PocheSanguinController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        // Récupérer toutes les poches sanguin
-        $poche_sanguin = Poche_sanguin::all();
-        return response()->json($poche_sanguin);
+    {  
+        // Récupérer l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Vérifier si l'utilisateur a le rôle de structure (role_id = 2)
+    if ($user->role_id == 2) {
+        // Récupérer la structure de cet utilisateur
+        $structure = Structure::where('user_id', $user->id)->first();
+
+        // Si la structure existe, récupérer ses poches sanguines
+        if ($structure) {
+            // Récupérer les banques de sang associées à la structure
+            $banques_sang = Banque_sang::where('structure_id', $structure->id)->pluck('id');
+
+            // Récupérer les poches sanguines associées aux banques de sang
+            $poches_sanguines = Poche_sanguin::whereIn('banque_sang_id', $banques_sang)->get();
+
+            // Retourner les poches sanguines au format JSON
+            return response()->json($poches_sanguines);
+        } else {
+            return response()->json(['message' => 'Structure non trouvée'], 404);
+        }
     }
+    // Vérifier si l'utilisateur a le rôle d'admin ou d'utilisateur simple
+    elseif ($user->role_id == 1 || $user->role_id == 3) {
+        // Récupérer toutes les poches sanguines
+        $poches_sanguines = Poche_sanguin::all();
+        
+        // Retourner les poches sanguines sous forme de JSON
+        return response()->json($poches_sanguines);
+    } else {
+        // Si l'utilisateur n'a pas les droits, renvoyer une réponse d'accès refusé
+        return response()->json(['message' => 'Accès non autorisé'], 403);
+    } 
+}
+    
 
     /**
      * Show the form for creating a new resource.
@@ -70,6 +102,11 @@ class PocheSanguinController extends Controller
             $poche_sanguin->rendez_vouse_id = $request->rendez_vouse_id;
             $poche_sanguin->donneur_externe_id = $request->donneur_externe_id;
             $poche_sanguin->save();
+
+             // Mettre à jour le stock et la date de mise à jour
+            $banqueSang->stock_actuelle += 1; // Incrémenter le stock actuel
+            $banqueSang->date_mise_a_jour = now(); // Mettre à jour la date de mise à jour avec la date actuelle
+            $banqueSang->save();
             return response()->json([
                 'status' => true,
                 'message' => 'Poche sanguin créée avec succès!.', 'data' => $poche_sanguin
@@ -79,13 +116,14 @@ class PocheSanguinController extends Controller
     /**
      * Display the specified resource.
      */
-        public function show(Poche_sanguin $poche_sanguin)
-        {
+    public function show(Poche_sanguin $poche_sanguin)
+    {
         // Commencez avec les informations de la poche sanguine
         $response = [
             'numero_poche' => $poche_sanguin->numero_poche,
             'groupe_sanguin' => $poche_sanguin->groupe_sanguin,
-            'date_prelevement' => $poche_sanguin->date_prelevement,
+            'date_prelevement' => $poche_sanguin->date_prelevement, 
+            'banque_sang_id' => $poche_sanguin->banque_sang_id,  
         ];
 
         // Si le donneur_externe_id n'est pas null, ajouter les informations du donneur externe
@@ -97,49 +135,31 @@ class PocheSanguinController extends Controller
                 'telephone' => $donneur_externe->telephone,
                 'adresse' => $donneur_externe->adresse,
                 'date_naiss' => $donneur_externe->date_naiss,
-                'profession' => $donneur_externe->profession
+                'profession' => $donneur_externe->profession,
             ];
         }
-        // Si le rendez_vouse_id n'est pas null, ajouter les informations de l'utilisateur_simple qui a pris le rendez-vous
+    
+        // Si le rendez_vouse_id n'est pas null, ajouter les informations de l'utilisateur_simple
         if ($poche_sanguin->rendez_vouse_id !== null) {
-            $rendez_vouse = $poche_sanguin;
-            
-            
-            if ($rendez_vouse) {
-                $utilisateur_simple = $rendez_vouse;
-                // dd($utilisateur_simple);
-                $rendez_vouse = $poche_sanguin->rendezVouse; // Utilise la relation définie dans le modèle
-
-                if ($utilisateur_simple) {
-                    $response['utilisateur_simple'] = [
-                        'utilisateur_simple' => $utilisateur_simple,
-                        $utilisateur_simple->rendez_vouse,
-                        // Ajoutez les informations annoce et l'utilisateur simple
-                        // Utilisez la relation définie dans le modèle
-
-                        $response['utilisateur_simple'] = [
-                            'nom' => $utilisateur_simple->nom,
-                            'prenom' => $utilisateur_simple->prenom,
-                            'telephone' => $utilisateur_simple->telephone,
-                            'adresse' => $utilisateur_simple->adresse,
-                            'date_naiss' => $utilisateur_simple->date_naiss,
-                            'profession' => $utilisateur_simple->profession
-                        
-                        ]
-                    
-                        
-                    ];
-                 
-                }
+            $rendez_vouse = $poche_sanguin->rendezVouse; // Utilise la relation définie dans le modèle
+            $utilisateur_simple = $rendez_vouse->utilisateur_simple ?? null;
+    
+            if ($utilisateur_simple) {
+                $response['utilisateur_simple'] = [
+                    'nom' => $utilisateur_simple->nom,
+                    'prenom' => $utilisateur_simple->prenom,
+                    'telephone' => $utilisateur_simple->telephone,
+                    'adresse' => $utilisateur_simple->adresse,
+                    'date_naiss' => $utilisateur_simple->date_naiss,
+                    'profession' => $utilisateur_simple->profession,
+                ];
             }
         }
-
     
-
-    // Retourner la réponse JSON
-    return response()->json($response);
-}
-
+        // Retourner la réponse JSON
+        return response()->json($response);
+    }
+        
     /**
      * Show the form for editing the specified resource.
      */

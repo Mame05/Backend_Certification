@@ -51,4 +51,17 @@ class Notification1Controller extends Controller
 
         return response()->json(['status' => false, 'message' => 'Notification non trouvée.'], 404);
     }
+    public function destroy($id)
+    {
+    // Vérifie que la notification appartient à l'utilisateur authentifié
+    $notification = Notification1::where('user_id', auth()->user()->id)->find($id);
+
+    if ($notification) {
+        $notification->delete(); // Supprimer la notification
+        return response()->json(['status' => true, 'message' => 'Notification supprimée avec succès.']);
+    }
+
+    return response()->json(['status' => false, 'message' => 'Notification non trouvée.'], 404);
+}
+
 }
