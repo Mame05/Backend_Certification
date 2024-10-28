@@ -178,7 +178,7 @@ class RendezVousController extends Controller
     return response()->json(['message' => 'Inscription annulée avec succès, et la structure a été notifiée.'], 200);
 }
 
-public function updateEtat(Request $request, Rendez_vous $rendezVous)
+public function updateEtatAddPoche(Request $request, Rendez_vous $rendezVous)
     {
         // Obtenir l'utilisateur authentifié
         $user = auth()->user();
@@ -187,12 +187,7 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         if ($user->role_id !== 2) {
             return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de modifier cet état.'], 403);
         }
-        $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
-
-        // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
-        if ($banqueSang->structure->user_id !== $user->id) {
-            return response()->json(['error' => 'Vous ne pouvez ajouter des poches que dans votre banque de sang.'], 403);
-        }
+       
         // Récupérer l'annonce liée au rendez-vous
         $annonce = Annonce::findOrFail($rendezVous->annonce_id);
 
@@ -204,19 +199,26 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         // Valider les données (par exemple, pour la colonne 'etat')
         $validator = validator($request->all(), [
             'etat' => 'required|boolean', // Valider que l'état est bien un booléen
+            'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
+            'date_prelevement' => ['required', 'date'], // Date valide pour le prélèvement.
+            'banque_sang_id' => ['required', 'exists:banque_sangs,id'], // Assurez-vous que la banque de sang existe
+            'rendez_vouse_id' => ['nullable', 'exists:rendez_vouses,id'],
+            'donneur_externe_id' => ['nullable', 'exists:donneur_externes,id']
         ]);
 
         // Si la validation échoue, renvoyer les erreurs
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-
         // Mettre à jour l'état du rendez-vous
         $rendezVous->etat = $request->etat;
         $rendezVous->save();
+        // Si l'état est true, permettre l'ajout de la poche de sang
+       // Si l'état est true, ajouter une poche sanguine
+    if ($rendezVous->etat === true) {
         $numero_poche = 'POCHE-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
-        // Créer une nouvelle poche de sanguin
-        $poche_sanguin = new Poche_sanguin();
+        // Ajouter une nouvelle poche sanguine
+        $poche_sanguin = new  Poche_sanguin();
         $poche_sanguin->numero_poche = $numero_poche;
         $poche_sanguin->groupe_sanguin = $request->groupe_sanguin;
         $poche_sanguin->date_prelevement = $request->date_prelevement;
@@ -226,17 +228,32 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
         $poche_sanguin->save();
 
          // Mettre à jour le stock et la date de mise à jour
+         // Vérifiez que la banque de sang existe
+        $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
+    
+        // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
+        if ($banqueSang->structure->user_id !== $user->id) {
+            return response()->json(['error' => 'Vous ne pouvez ajouter des poches que dans votre banque de sang.'], 403);
+        }
         $banqueSang->stock_actuelle += 1; // Incrémenter le stock actuel
         $banqueSang->date_mise_a_jour = now(); // Mettre à jour la date de mise à jour avec la date actuelle
         $banqueSang->save();
 
         return response()->json([
             'rendezVous' => $rendezVous,
-            'poche_sanguin' => $poche_sanguin,
-            'data' => $poche_sanguin,
-            
-            'message' => 'L\'état du rendez-vous a été mis à jour avec succès!']);
+            'message' => 'L\'état du rendez-vous a été mis à jour avec succès! Une poche de sang a été ajoutée.',
+            'data' => $poche_sanguin
+        ]);
     }
+
+    return response()->json([
+        'rendezVous' => $rendezVous,
+        'message' => 'L\'état du rendez-vous a été mis à jour avec succès!'
+    ]);
+    }
+
+   
+
 
     public function getInscriptions()
 {
@@ -274,7 +291,7 @@ public function updateEtat(Request $request, Rendez_vous $rendezVous)
      ]);
 }
 public function supprimerHistorique($rendezVousId)
-{
+    {
     // Obtenez l'utilisateur authentifié
     $user = auth()->user();
     
@@ -299,7 +316,7 @@ public function supprimerHistorique($rendezVousId)
 
 // Methode qui permet de recuperer les donneurs pour 
 public function getUsersWithCompletedInscriptions()
-{
+    {
     // Obtenir l'utilisateur authentifié
     $user = auth()->user();
 
@@ -355,12 +372,5 @@ public function getUsersWithCompletedInscriptions()
     // Retourner les utilisateurs
     return response()->json($utilisateurs);
 }
-
-
-
-
-
- 
-
 
 }

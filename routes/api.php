@@ -51,14 +51,19 @@ Route::get('/structure/utilisateurs-inscriptions', [RendezVousController::class,
 
 
 // Valider un don
-Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtat']);
+Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtatAddPoche']);
+
+
+
+
 
 // Banque de sang
 Route::apiResource('banque-sangs', BanqueSangController::class);
 
 // Poche sanguine
 Route::apiResource('poche-sanguins', PocheSanguinController::class);
-// Route::apiResource('poche-sanguins', PocheSanguinController::class);
+Route::put('/poche-sanguin/{id}', [PocheSanguinController::class, 'updatePoche']);
+
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);

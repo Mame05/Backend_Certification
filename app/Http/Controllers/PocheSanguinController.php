@@ -6,6 +6,7 @@ use App\Models\Banque_sang;
 use App\Models\Poche_sanguin;
 use App\Models\DonneurExterne;
 use App\Models\Structure;
+use Illuminate\Http\Request;
 use App\Http\Requests\StorePoche_sanguinRequest;
 use App\Http\Requests\UpdatePoche_sanguinRequest;
 
@@ -195,6 +196,7 @@ class PocheSanguinController extends Controller
     /**
      * Update the specified resource in storage.
      */
+    /**  Modification des poches sanguins pour les donneurs externes  */
     public function update(UpdatePoche_sanguinRequest $request, Poche_sanguin $poche_sanguin)
     {
         // Obtenez l'utilisateur authentifié
@@ -219,7 +221,17 @@ class PocheSanguinController extends Controller
     $validator = validator(
         $request->all(),
         [
-            'numero_poche' => ['required', 'string', 'max:255'],
+            // Validation des champs de la donneur externe
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'telephone' => ['required', 'string', 'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
+            'adresse' => ['required', 'string'],
+            'sexe' => ['required', 'in:M,F'],
+            'date_naiss' => ['required', 'date'],
+            'profession' => ['required', 'string', 'max:255'],
+
+            // Validation des champs de la poche sanguin
+            //'numero_poche' => ['required', 'string', 'max:255'],
             'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
             'date_prelevement' => ['required', 'date'], // Date valide pour le prélèvement.
             'banque_sang_id' => ['required', 'exists:banque_sangs,id'], // Assurez-vous que la banque de sang existe
@@ -232,15 +244,74 @@ class PocheSanguinController extends Controller
         if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
         }
-        // Mettre à jour la poche
-    $poche_sanguin->update($request->only('numero_poche', 'groupe_sanguin', 'date_prelevement', 'banque_sang_id', 'rendez_vouse_id', 'donneur_externe_id'));
+      // Mettre à jour le donneur externe
+    if ($request->donneur_externe_id) {
+    $donneur_externe = DonneurExterne::findOrFail($request->donneur_externe_id);
+    $donneur_externe->update($request->only('nom', 'prenom', 'telephone', 'adresse', 'sexe', 'date_naiss', 'profession', 'groupe_sanguin'));
+}
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Poche sanguin modifiée.',
-            'data' => $poche_sanguin
-        ]); 
+    // Mettre à jour la poche sanguine
+    $poche_sanguin->update($request->only('groupe_sanguin', 'date_prelevement', 'banque_sang_id', 'rendez_vouse_id', 'donneur_externe_id'));
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Poche sanguine et/ou donneur externe modifiée avec succès.',
+        'Donneur' => $donneur_externe,
+        'data' => $poche_sanguin
+    ]);
     }
+
+    /** Modification des poches sanguins pour les donneurs internes i.e les utilisateurs simples  */
+    public function updatePoche(Request $request, $id)
+    {
+        // Obtenir l'utilisateur authentifié
+        $user = auth()->user();
+    
+        // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
+        if ($user->role_id !== 2) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Vous n\'avez pas l\'autorisation de modifier cette poche de sang.'
+            ], 403);
+        }
+    
+        // Trouver la poche sanguine par son ID
+        $pocheSanguin = Poche_sanguin::findOrFail($id); // Assurez-vous de récupérer la poche
+    
+        // Vérifiez que la banque de sang existe
+        $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
+    
+        // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
+        if ($banqueSang->structure->user_id !== $user->id) {
+            return response()->json(['error' => 'Vous ne pouvez modifier des poches que dans votre propre banque de sang.'], 403);
+        }
+    
+        // Valider les nouvelles données
+        $validator = validator($request->all(), [
+            'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
+            'date_prelevement' => ['required', 'date'],
+            'banque_sang_id' => ['required', 'exists:banque_sangs,id'],
+            'donneur_externe_id' => ['nullable', 'exists:donneur_externes,id']
+        ]);
+    
+        // Si la validation échoue, renvoyer les erreurs
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+    
+        // Mettre à jour les informations de la poche de sang
+        $pocheSanguin->groupe_sanguin = $request->groupe_sanguin;
+        $pocheSanguin->date_prelevement = $request->date_prelevement;
+        $pocheSanguin->banque_sang_id = $request->banque_sang_id;
+        $pocheSanguin->donneur_externe_id = $request->donneur_externe_id;
+        $pocheSanguin->save();
+    
+        return response()->json([
+            'message' => 'Poche de sang mise à jour avec succès',
+            'pocheSanguin' => $pocheSanguin
+        ]);
+    }
+    
 
     /**
      * Remove the specified resource from storage.
