@@ -244,6 +244,8 @@ class PocheSanguinController extends Controller
         if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
         }
+         // Initialiser la variable $donneur_externe
+    $donneur_externe = null;
       // Mettre à jour le donneur externe
     if ($request->donneur_externe_id) {
     $donneur_externe = DonneurExterne::findOrFail($request->donneur_externe_id);
