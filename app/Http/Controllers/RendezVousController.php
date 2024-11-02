@@ -345,10 +345,13 @@ public function getUsersWithCompletedInscriptions()
     $utilisateurs = UtilisateurSimple::whereHas('rendezVous', function ($query) use ($annonces) {
         $query->whereIn('annonce_id', $annonces)
               ->where('etat', true); // Vérifier si l'état est true
-    })->withCount(['rendezVous as nombre_de_dons' => function ($query) {
-        $query->where('etat', true);
-    }])->get()->map(function ($utilisateur) {
+    })->withCount(['rendezVous as nombre_de_dons' => function ($query) use ($annonces) {
+        $query->whereIn('annonce_id', $annonces)
+              ->where('etat', true);
+    }])->get()->map(function ($utilisateur) use ($annonces) {
+         // Récupérer le dernier don validé
         $dernierDon = $utilisateur->rendezVous()
+        ->whereIn('annonce_id', $annonces)
         ->where('etat', true)
         ->latest('created_at') // Récupérer le dernier rendez-vous avec état `true`
         ->first();
