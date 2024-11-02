@@ -67,6 +67,7 @@ Route::put('/poche-sanguin/{id}', [PocheSanguinController::class, 'updatePoche']
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);
+Route::get('/structure/donneurs', [ DonneurExterneController::class, 'getDonneursParStructure']);
 
 
 

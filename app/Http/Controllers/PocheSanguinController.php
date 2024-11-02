@@ -6,6 +6,7 @@ use App\Models\Banque_sang;
 use App\Models\Poche_sanguin;
 use App\Models\DonneurExterne;
 use App\Models\Structure;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePoche_sanguinRequest;
 use App\Http\Requests\UpdatePoche_sanguinRequest;
@@ -67,75 +68,98 @@ class PocheSanguinController extends Controller
     public function store(StorePoche_sanguinRequest $request)
     {
         // Obtenez l'utilisateur authentifié
-        $user = auth()->user();
-        // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
-        if ($user->role_id !== 2) {
+    $user = auth()->user();
+
+    // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
+    if ($user->role_id !== 2) {
         return response()->json(['error' => 'Vous n\'avez pas l\'autorisation d\'ajouter une poche de sang.'], 403);
-       }
-        // Vérifiez que la banque de sang existe
-        $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
+    }
 
-        // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
-        if ($banqueSang->structure->user_id !== $user->id) {
-            return response()->json(['error' => 'Vous ne pouvez ajouter des poches que dans votre banque de sang.'], 403);
-        }
-       // Valider les données de la poche sanguin 
-        $validator = validator(
-            $request->all(),
-            [
+    // Vérifiez que la banque de sang existe
+    $banqueSang = Banque_sang::findOrFail($request->banque_sang_id);
 
-                'nom' => ['required', 'string', 'max:255'],
-                'prenom' => ['required', 'string', 'max:255'],
-                'telephone' => ['required', 'string', 'unique:donneur_externes,telephone', 'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
-                'adresse' => ['required', 'string'],
-                'sexe' => ['required', 'in:M,F'],
-                'date_naiss' => ['required', 'date'],
-                'profession' => ['required', 'string', 'max:255'],
-    
-                //'numero_poche' => ['required', 'string', 'max:50', 'unique:poche_sanguins,numero_poche'],
-                'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
-                'date_prelevement' => ['required', 'date'], // Date valide pour le prélèvement.
-                'banque_sang_id' => ['required', 'exists:banque_sangs,id'], // Assurez-vous que la banque de sang existe
-                'rendez_vouse_id' => ['nullable', 'exists:rendez_vouses,id'],
-                'donneur_externe_id' => ['nullable', 'exists:donneur_externes,id'],
-            ]
-        );
-        // Si les données ne sont pas valides, renvoyer les erreurs
-        if ($validator->fails()) {
+    // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
+    if ($banqueSang->structure->user_id !== $user->id) {
+        return response()->json(['error' => 'Vous ne pouvez ajouter des poches que dans votre banque de sang.'], 403);
+    }
+
+    // Valider les données de la poche sanguine 
+    $validator = validator(
+        $request->all(),
+        [
+            'nom' => ['required', 'string', 'max:255'],
+            'prenom' => ['required', 'string', 'max:255'],
+            'telephone' => ['required', 'string', 'regex:/^\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/'],
+            'adresse' => ['required', 'string'],
+            'sexe' => ['required', 'in:M,F'],
+            'date_naiss' => ['required', 'date'],
+            'profession' => ['required', 'string', 'max:255'],
+            'groupe_sanguin' => ['required', 'in:A+,A-,B+,B-,O+,O-,AB+,AB-'],
+            'date_prelevement' => ['required', 'date'], // Date valide pour le prélèvement.
+            'banque_sang_id' => ['required', 'exists:banque_sangs,id'], // Assurez-vous que la banque de sang existe
+            'rendez_vouse_id' => ['nullable', 'exists:rendez_vouses,id'],
+            'donneur_externe_id' => ['nullable', 'exists:donneur_externes,id'],
+        ]
+    );
+
+    // Si les données ne sont pas valides, renvoyer les erreurs
+    if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
-        }
-        $donneur_externe = new DonneurExterne();
-        $donneur_externe->nom = $request->nom;
-        $donneur_externe->prenom = $request->prenom;
-        $donneur_externe->telephone = $request->telephone;
-        $donneur_externe->adresse = $request->adresse;
-        $donneur_externe->sexe = $request->sexe;
-        $donneur_externe->date_naiss = $request->date_naiss;
-        $donneur_externe->profession = $request->profession;
-        $donneur_externe->groupe_sanguin = $request->groupe_sanguin;
-        $donneur_externe->save();
+    }
 
+    // Crée ou récupère le donneur
+    $donneur_externe = DonneurExterne::firstOrCreate(
+        ['telephone' => $request->telephone],
+        [
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
+            'adresse' => $request->adresse,
+            'sexe' => $request->sexe,
+            'date_naiss' => $request->date_naiss,
+            'profession' => $request->profession,
+            'groupe_sanguin' => $request->groupe_sanguin,
+        ]
+    );
 
-            $numero_poche = 'POCHE-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
-            // Créer une nouvelle poche de sanguin
-            $poche_sanguin = new Poche_sanguin();
-            $poche_sanguin->numero_poche = $numero_poche;
-            $poche_sanguin->groupe_sanguin = $donneur_externe->groupe_sanguin;
-            $poche_sanguin->date_prelevement = $request->date_prelevement;
-            $poche_sanguin->banque_sang_id = $request->banque_sang_id;
-            $poche_sanguin->rendez_vouse_id = $request->rendez_vouse_id;
-            $poche_sanguin->donneur_externe_id = $donneur_externe->id;
-            $poche_sanguin->save();
+    // Gérer le nombre de dons dans la table pivot `donneur_structure`
+    $structure = $banqueSang->structure;
+    $nombre_dons = 1; // Valeur par défaut pour un nouveau donneur dans une nouvelle structure
 
-             // Mettre à jour le stock et la date de mise à jour
-            $banqueSang->stock_actuelle += 1; // Incrémenter le stock actuel
-            $banqueSang->date_mise_a_jour = now(); // Mettre à jour la date de mise à jour avec la date actuelle
-            $banqueSang->save();
-            return response()->json([
-                'status' => true,
-                'DONNER' => $donneur_externe,
-                'message' => 'Poche sanguin créée avec succès!.', 'data' => $poche_sanguin
-            ]);
+    if ($donneur_externe->structures()->where('structure_id', $structure->id)->exists()) {
+        // Incrémentez le nombre de dons si l'association existe
+        $donneur_externe->structures()->updateExistingPivot($structure->id, [
+            'nombre_dons' => \DB::raw('nombre_dons + 1')
+        ]);
+        $nombre_dons = $donneur_externe->structures()->where('structure_id', $structure->id)->first()->pivot->nombre_dons;
+    } else {
+        // Créez une nouvelle association dans la table pivot avec un nombre de dons initialisé à 1
+        $donneur_externe->structures()->attach($structure->id, ['nombre_dons' => 1]);
+    }
+
+    // Créer la poche de sang
+    $numero_poche = 'POCHE-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+    $poche_sanguin = new Poche_sanguin();
+    $poche_sanguin->numero_poche = $numero_poche;
+    $poche_sanguin->groupe_sanguin = $donneur_externe->groupe_sanguin;
+    $poche_sanguin->date_prelevement = $request->date_prelevement;
+    $poche_sanguin->banque_sang_id = $request->banque_sang_id;
+    $poche_sanguin->rendez_vouse_id = $request->rendez_vouse_id;
+    $poche_sanguin->donneur_externe_id = $donneur_externe->id;
+    $poche_sanguin->save();
+
+    // Mise à jour du stock de la banque de sang
+    $banqueSang->increment('stock_actuelle');
+    $banqueSang->update(['date_mise_a_jour' => now()]);
+
+    return response()->json([
+        'status' => true,
+        'DONNER' => [
+            'donneur_externe' => $donneur_externe,
+            'nombre_dons' => $nombre_dons,
+        ],
+        'message' => 'Poche sanguine créée avec succès!',
+        'data' => $poche_sanguin
+    ]);
     }
 
     /**
@@ -348,4 +372,5 @@ class PocheSanguinController extends Controller
          'message' => 'Poche sanguin supprimée avec succès'
      ]);
     }
+    
 }

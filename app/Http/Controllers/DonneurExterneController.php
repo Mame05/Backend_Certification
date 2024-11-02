@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Banque_sang;
+use App\Models\Poche_sanguin;
 use App\Models\DonneurExterne;
+use App\Models\Structure;
 use App\Http\Requests\StoreDonneurExterneRequest;
 use App\Http\Requests\UpdateDonneurExterneRequest;
 
@@ -121,4 +123,41 @@ class DonneurExterneController extends Controller
             'message' => 'Donneur externe supprimé avec succès!'
         ]);
     }
+
+    public function getDonneursParStructure()
+    {
+        $user = auth()->user();
+   
+        // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
+        if ($user->role_id !== 2) {
+            return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les donneurs externes.'], 403);
+        }
+    
+        // Récupérer la structure de l'utilisateur
+        $structure = Structure::where('user_id', $user->id)->first();
+        if (!$structure) {
+            return response()->json(['error' => 'Aucune structure associée trouvée pour cet utilisateur.'], 404);
+        }
+    
+        // Récupérer les donneurs externes associés à cette structure, en incluant le nombre de dons et la date du dernier don
+        $donneurs = $structure->donneursExternes()->get()->map(function ($donneur) {
+            return [
+                'id' => $donneur->id,
+                'nom' => $donneur->nom,
+                'prenom' => $donneur->prenom,
+                'telephone' => $donneur->telephone,
+                'nombre_dons' => $donneur->pivot->nombre_dons,
+                'dernier_don_date' => Poche_sanguin::where('donneur_externe_id', $donneur->id)
+                    ->orderBy('date_prelevement', 'desc')
+                    ->value('date_prelevement'),
+            ];
+        });
+    
+        // Retourner le résultat
+        return response()->json([
+            'status' => true,
+            'donneurs' => $donneurs,
+        ]);
+    }
+
 }

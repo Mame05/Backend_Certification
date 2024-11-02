@@ -25,4 +25,11 @@ class Structure extends Model
     {
         return $this->hasMany(Banque_sang::class);
     }
+    public function donneursExternes()
+{
+    return $this->belongsToMany(DonneurExterne::class, 'donneur_externe_structure')
+                ->withPivot('nombre_dons')
+                ->withTimestamps();
+}
+
 }

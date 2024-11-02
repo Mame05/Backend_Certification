@@ -13,4 +13,11 @@ class DonneurExterne extends Model
     {
         return $this->hasMany(Poche_sanguin::class);
     }
+    public function structures()
+{
+    return $this->belongsToMany(Structure::class, 'donneur_externe_structure')
+                ->withPivot('nombre_dons')
+                ->withTimestamps();
+}
+
 }
