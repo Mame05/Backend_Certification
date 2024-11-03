@@ -188,6 +188,44 @@ public function profile()
     ]);
 }
 
+// Récuperer tous les utilisateur simples
+public function getAllUtilisateurSimples()
+{
+    // Récupérer tous les utilisateurs simples avec leurs utilisateurs associés
+    $utilisateurs_simples = UtilisateurSimple::with('user')->get();
+
+    // Vérifier si des utilisateurs simples sont trouvés
+    if ($utilisateurs_simples->isEmpty()) {
+        return response()->json([
+            "status" => false,
+            "message" => "Aucun utilisateur simple trouvé"
+        ], 404);
+    }
+
+    // Préparer les données des utilisateurs simples
+    $data = $utilisateurs_simples->map(function ($utilisateur_simple) {
+        return [
+            "email" => $utilisateur_simple->user->email,
+            "nom" => $utilisateur_simple->nom,
+            "prenom" => $utilisateur_simple->prenom,
+            "telephone" => $utilisateur_simple->telephone,
+            "adresse" => $utilisateur_simple->adresse,
+            "sexe" => $utilisateur_simple->sexe,
+            "date_naiss" => $utilisateur_simple->date_naiss,
+            "photo" => $utilisateur_simple->photo,
+            "profession" => $utilisateur_simple->profession,
+            "groupe_sanguin" => $utilisateur_simple->groupe_sanguin,
+        ];
+    });
+
+    // Retourner la réponse JSON avec les données de tous les utilisateurs simples
+    return response()->json([
+        "status" => true,
+        "message" => "Liste des utilisateurs simples récupérée avec succès",
+        "data" => $data
+    ]);
+}
+
 // Recupérer le structure connecté
 public function profileStructure()
 {

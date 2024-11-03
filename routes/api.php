@@ -27,7 +27,7 @@ Route::get("refresh", [ApiController::class, "refreshToken"]);
 Route::get("profile", [ApiController::class, "profile"]);
 Route::put("updateProfile", [ApiController::class, "updateProfile"]);
 Route::get("profileStructure", [ApiController::class, "profileStructure"]);
-
+Route::get("utilisateurs-simples", [ApiController::class, 'getAllUtilisateurSimples']);
 // CRUD Structures
 Route::apiResource('structures', StructureController::class);
 
