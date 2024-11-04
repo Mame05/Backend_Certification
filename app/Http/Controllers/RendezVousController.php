@@ -315,16 +315,26 @@ public function supprimerHistorique($rendezVousId)
 }
 
 // Methode qui permet de recuperer les donneurs pour 
-public function getUsersWithCompletedInscriptions()
+public function getUsersWithCompletedInscriptions($structureId = null)
     {
     // Obtenir l'utilisateur authentifié
     $user = auth()->user();
+     // Vérifiez si l'utilisateur est un administrateur (role_id = 1)
+     if ($user->role_id == 1) {
+        // Si un ID de structure est fourni, récupérez les donneurs de cette structure
+        if ($structureId) {
+            $structure = Structure::find($structureId);
+            if (!$structure) {
+                return response()->json(['status' => false, 'error' => 'Structure non trouvée.'], 404);
+            }
+        } else {
+            return response()->json(['status' => false, 'error' => 'ID de structure requis pour les administrateurs.'], 400);
+        }
+    } 
+   
 
     // Vérifier que l'utilisateur est bien une structure
-    if ($user->role_id !== 2) {
-        return response()->json(['message' => 'Seules les structures peuvent accéder à cette ressource.'], 403);
-    }
-
+    elseif ($user->role_id == 2) {
     // Récupérer la structure correspondante
     $structure = Structure::where('user_id', $user->id)->first();
 
@@ -332,6 +342,11 @@ public function getUsersWithCompletedInscriptions()
     if (!$structure) {
         return response()->json(['message' => 'Structure non trouvée.'], 404);
     }
+}
+else {
+    return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les donneurs externes.'], 403);
+}
+
 
     // Récupérer toutes les annonces de la structure
     $annonces = Annonce::where('structure_id', $structure->id)->pluck('id');

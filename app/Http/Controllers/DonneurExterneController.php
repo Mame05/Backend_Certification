@@ -124,20 +124,33 @@ class DonneurExterneController extends Controller
         ]);
     }
 
-    public function getDonneursParStructure()
+    public function getDonneursParStructure($structureId = null)
     {
         $user = auth()->user();
+        // Vérifiez si l'utilisateur est un administrateur (role_id = 1)
+    if ($user->role_id == 1) {
+        // Si un ID de structure est fourni, récupérez les donneurs de cette structure
+        if ($structureId) {
+            $structure = Structure::find($structureId);
+            if (!$structure) {
+                return response()->json(['status' => false, 'error' => 'Structure non trouvée.'], 404);
+            }
+        } else {
+            return response()->json(['status' => false, 'error' => 'ID de structure requis pour les administrateurs.'], 400);
+        }
+    } 
    
         // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
-        if ($user->role_id !== 2) {
-            return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les donneurs externes.'], 403);
-        }
+        elseif ($user->role_id == 2) {
     
         // Récupérer la structure de l'utilisateur
         $structure = Structure::where('user_id', $user->id)->first();
         if (!$structure) {
             return response()->json(['error' => 'Aucune structure associée trouvée pour cet utilisateur.'], 404);
         }
+    } else {
+        return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les donneurs externes.'], 403);
+    }
     
         // Récupérer les donneurs externes associés à cette structure, en incluant le nombre de dons et la date du dernier don
         $donneurs = $structure->donneursExternes()->get()->map(function ($donneur) {

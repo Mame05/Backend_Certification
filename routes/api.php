@@ -46,7 +46,7 @@ Route::post('annonces/{annonceId}/inscrire', [RendezVousController::class, 'insc
 Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annulerInscription']);
 Route::get('/user/inscriptions', [RendezVousController::class, 'getInscriptions']);// permet d'obtenir les inscriptions d'un utilisateur
 Route::delete('/rendez-vous/{id}/supprimer', [RendezVousController::class, 'supprimerHistorique']);
-Route::get('/structure/utilisateurs-inscriptions', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);
+Route::get('/structure/utilisateurs-inscriptions/{structureId?}', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);
 
 
 
@@ -67,7 +67,7 @@ Route::put('/poche-sanguin/{id}', [PocheSanguinController::class, 'updatePoche']
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);
-Route::get('/structure/donneurs', [ DonneurExterneController::class, 'getDonneursParStructure']);
+Route::get('/structure/donneurs/{structureId?}', [ DonneurExterneController::class, 'getDonneursParStructure']);
 
 
 
