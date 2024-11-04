@@ -63,6 +63,8 @@ Route::apiResource('banque-sangs', BanqueSangController::class);
 // Poche sanguine
 Route::apiResource('poche-sanguins', PocheSanguinController::class);
 Route::put('/poche-sanguin/{id}', [PocheSanguinController::class, 'updatePoche']);
+Route::get('/poches-par-mois', [PocheSanguinController::class, 'getPochesSanguinsParMois']);
+
 
 
 // Donneur externe

@@ -7,6 +7,7 @@ use App\Models\Poche_sanguin;
 use App\Models\DonneurExterne;
 use App\Models\Structure;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB; // Importer DB pour l'utilisation des requêtes
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePoche_sanguinRequest;
 use App\Http\Requests\UpdatePoche_sanguinRequest;
@@ -372,5 +373,49 @@ class PocheSanguinController extends Controller
          'message' => 'Poche sanguin supprimée avec succès'
      ]);
     }
+
+    // Méthode pour permettre d'avoir le nombres de poches ajouté par mois 
+    public function getPochesSanguinsParMois()
+    {
+    // Récupérer l'utilisateur authentifié
+    $user = auth()->user();
+    // Vérifier que l'utilisateur a un rôle de structure
+    if ($user->role_id != 2) {
+        return response()->json(['message' => 'Accès interdit.'], 403);
+    }
+
+    // Vérifier si l'utilisateur a une structure associée
+    $structure = Structure::where('user_id', $user->id)->first();
+
+    if (!$structure) {
+        return response()->json(['message' => 'Structure non trouvée.'], 404);
+    }
+    // Vérifier les banques de sang associées à la structure
+    $banquesDeSang = DB::table('banque_sangs') // Change le nom de la table si nécessaire
+        ->where('structure_id', $structure->id) // Supposons que structure_id est la clé étrangère dans la table banques_de_sang
+        ->pluck('id');
+
+    if ($banquesDeSang->isEmpty()) {
+        return response()->json(['message' => 'Aucune banque de sang trouvée pour cette structure.'], 404);
+    }
+    // Obtenir l'année actuelle
+    $anneeActuelle = date('Y');
+
+    $resultats = DB::table('poche_sanguins')
+        ->select(DB::raw('DATE_FORMAT(created_at, "%M") as mois, COUNT(*) as nombre_poches'))
+        ->whereIn('banque_sang_id', $banquesDeSang)
+        ->whereYear('created_at', $anneeActuelle) // Filtrer par l'année actuelle
+        ->groupBy(DB::raw('DATE_FORMAT(created_at, "%M"), MONTH(created_at), YEAR(created_at)')) // Grouper par mois et année
+        ->orderBy(DB::raw('MONTH(created_at)')) // Trier par mois numérique
+        ->get();
+
+
+
+    if ($resultats->isEmpty()) {
+        return response()->json(['message' => 'Aucune poche de sang trouvée pour cette structure.'], 404);
+    }
+    return response()->json($resultats);
+}
+
     
 }
