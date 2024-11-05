@@ -160,6 +160,8 @@ class DonneurExterneController extends Controller
                 'prenom' => $donneur->prenom,
                 'telephone' => $donneur->telephone,
                  'groupe_sanguin' => $donneur->groupe_sanguin,
+                 'sexe' => $donneur->sexe,
+                 'date_naiss' => $donneur->date_naiss,
                 'nombre_dons' => $donneur->pivot->nombre_dons,
                 'dernier_don' => Poche_sanguin::where('donneur_externe_id', $donneur->id)
                     ->orderBy('date_prelevement', 'desc')

@@ -377,6 +377,8 @@ else {
             'nom_complet' => $utilisateur->prenom . ' ' . $utilisateur->nom,
             'telephone' => $utilisateur->telephone,
             'groupe_sanguin' => $utilisateur->groupe_sanguin, // Assurez-vous que cette colonne existe dans votre modèle
+            'sexe' => $utilisateur->sexe,
+            'date_naiss' => $utilisateur->date_naiss,
             'nombre_de_dons' => $utilisateur->nombre_de_dons,
             'dernier_don' => $dernierDonDate,
         ];
