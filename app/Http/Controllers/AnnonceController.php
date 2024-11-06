@@ -30,7 +30,13 @@ class AnnonceController extends Controller
 
         // Si la structure existe, récupérer ses annonces
         if ($structure) {
-            $annonces = Annonce::where('structure_id', $structure->id)->get();
+            $annonces = Annonce::where('structure_id', $structure->id)->get()->map(function ($annonce) {
+            // Compter le nombre d'inscrits
+            $nombreInscrits = $annonce->rendezVous()->count();
+             // Ajouter le nombre d'inscrits à l'annonce
+             $annonce->nombre_inscrits = $nombreInscrits;
+             return $annonce;
+            });
             // Retourner les annonces au format JSON
             return response()->json($annonces);
         } else {
