@@ -329,7 +329,7 @@ public function updateProfile(Request $request)
         'adresse' => $request->adresse,
         'sexe' => $request->sexe,
         'date_naiss' => $request->date_naiss,
-        'photo' => $request->hasFile('photo') ? $request->file('photo')->store('photos') : $utilisateur_simple->photo, // Gérer l'upload de la photo
+        'photo' => $request->hasFile('photo') ? $request->file('photo')->store('photos','public') : $utilisateur_simple->photo, // Gérer l'upload de la photo
         'profession' => $request->profession,
         'groupe_sanguin' => $request->groupe_sanguin,
     ]);

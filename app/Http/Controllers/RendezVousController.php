@@ -195,6 +195,9 @@ public function updateEtatAddPoche(Request $request, Rendez_vous $rendezVous)
         if ($annonce->structure->user_id !== $user->id) {
             return response()->json(['error' => 'Vous ne pouvez modifier l\'état que sur vos propres annonces.'], 403);
         }
+         // Récupérer la date de début et la date de fin de l'annonce
+        $dateDebut = $annonce->date_debut; // Date de début
+        $dateFin = $annonce->date_fin; // Date de fin
 
         // Valider les données (par exemple, pour la colonne 'etat')
         $validator = validator($request->all(), [
@@ -241,6 +244,8 @@ public function updateEtatAddPoche(Request $request, Rendez_vous $rendezVous)
 
         return response()->json([
             'rendezVous' => $rendezVous,
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin,
             'message' => 'L\'état du rendez-vous a été mis à jour avec succès! Une poche de sang a été ajoutée.',
             'data' => $poche_sanguin
         ]);
@@ -248,9 +253,47 @@ public function updateEtatAddPoche(Request $request, Rendez_vous $rendezVous)
 
     return response()->json([
         'rendezVous' => $rendezVous,
-        'message' => 'L\'état du rendez-vous a été mis à jour avec succès!'
+        'message' => 'L\'état du rendez-vous a été mis à jour avec succès!',
+        'dateDebut' => $dateDebut,
+        'dateFin' => $dateFin
     ]);
     }
+
+
+    // Méthode pour récupérer les détails du rendez-vous avec les dates de l'annonce
+    public function getRendezVousWithAnnonceDates($rendezVousId)
+    {
+         // Obtenir l'utilisateur authentifié
+         $user = auth()->user();
+
+         // Vérifiez si l'utilisateur a le rôle de structure (role_id = 2)
+         if ($user->role_id !== 2) {
+             return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de consulter ce rendez-vous.'], 403);
+         }
+        // Récupérer le rendez-vous par son ID
+        $rendezVous = Rendez_vous::with('annonce') // Assurez-vous que la relation 'annonce' existe dans votre modèle RendezVous
+            ->where('id', $rendezVousId)
+            ->firstOrFail(); // Retourne une erreur 404 si le rendez-vous n'existe pas
+         // Récupérer l'annonce liée au rendez-vous
+         $annonce = $rendezVous->annonce;
+
+
+         // Vérifiez que l'annonce appartient à la structure (utilisateur)
+         if ($annonce->structure->user_id !== $user->id) {
+             return response()->json(['error' => 'Vous ne pouvez consulter que les rendez-vous liés à vos propres annonces.'], 403);
+         }   
+
+        // Extraire les dates de début et de fin de l'annonce
+        $dateDebut = $rendezVous->annonce->date_debut; // Assurez-vous que 'annonce' et 'date_debut' existent dans votre base
+        $dateFin = $rendezVous->annonce->date_fin;
+
+        // Retourner les détails dans une réponse JSON
+        return response()->json([
+            'dateDebut' => $dateDebut,
+            'dateFin' => $dateFin
+        ]);
+    }
+
 
    
 
@@ -343,8 +386,43 @@ public function getUsersWithCompletedInscriptions($structureId = null)
         return response()->json(['message' => 'Structure non trouvée.'], 404);
     }
 }
+elseif ($user->role_id == 3) {
+    // Logique pour les utilisateurs avec `role_id` 3 : récupérer uniquement leurs propres informations
+    $utilisateur = UtilisateurSimple::where('user_id', $user->id)
+        ->withCount(['rendezVous as nombre_de_dons' => function ($query) {
+            $query->where('etat', true); // Compter uniquement les rendez-vous validés
+        }])
+        ->first();
+
+    if (!$utilisateur) {
+        return response()->json(['error' => 'Utilisateur non trouvé.'], 404);
+    }
+
+    // Récupérer le dernier don validé de l'utilisateur
+    $dernierDon = $utilisateur->rendezVous()
+        ->where('etat', true)
+        ->latest('created_at')
+        ->first();
+
+    // Formater la date du dernier don pour l'affichage
+    $dernierDonDate = $dernierDon ? $dernierDon->created_at->format('Y-m-d') : 'Aucun don';
+
+    // Retourner les informations de l'utilisateur connecté
+    return response()->json([
+        'status' => true,
+        'utilisateur' => [
+            'nom_complet' => $utilisateur->prenom . ' ' . $utilisateur->nom,
+            'telephone' => $utilisateur->telephone,
+            'groupe_sanguin' => $utilisateur->groupe_sanguin ?? 'Non spécifié',
+            'sexe' => $utilisateur->sexe,
+            'date_naiss' => $utilisateur->date_naiss,
+            'nombre_de_dons' => $utilisateur->nombre_de_dons,
+            'dernier_don' => $dernierDonDate,
+        ]
+    ]);
+}
 else {
-    return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les donneurs externes.'], 403);
+    return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir les utilisateurs simple.'], 403);
 }
 
 

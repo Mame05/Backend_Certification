@@ -47,8 +47,8 @@ Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annuler
 Route::get('/user/inscriptions', [RendezVousController::class, 'getInscriptions']);// permet d'obtenir les inscriptions d'un utilisateur
 Route::delete('/rendez-vous/{id}/supprimer', [RendezVousController::class, 'supprimerHistorique']);
 Route::get('/structure/utilisateurs-inscriptions/{structureId?}', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);
-
-
+// Route pour récupérer les détails du rendez-vous avec les dates de l'annonce
+Route::get('/rendezvous/{id}', [RendezVousController::class, 'getRendezVousWithAnnonceDates']);
 
 // Valider un don
 Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtatAddPoche']);
