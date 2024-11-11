@@ -168,12 +168,28 @@ class PocheSanguinController extends Controller
      */
     public function show(Poche_sanguin $poche_sanguin)
     {
+         // Obtenez l'utilisateur authentifié
+    $user = auth()->user();
+
+    // Vérifiez si l'utilisateur a le rôle approprié (role_id = 2)
+    if ($user->role_id !== 2) {
+        return response()->json(['error' => 'Vous n\'avez pas l\'autorisation de voir  une poche de sang.'], 403);
+    }
+
+    // Vérifiez que la banque de sang existe
+    $banqueSang = Banque_sang::findOrFail($poche_sanguin->banque_sang_id);
+
+    // Vérifiez que la banque de sang appartient à la structure de l'utilisateur
+    if ($banqueSang->structure->user_id !== $user->id) {
+        return response()->json(['error' => 'Vous ne pouvez voir que des poches de vos banque de sang.'], 403);
+    }
         // Commencez avec les informations de la poche sanguine
         $response = [
             'numero_poche' => $poche_sanguin->numero_poche,
             'groupe_sanguin' => $poche_sanguin->groupe_sanguin,
             'date_prelevement' => $poche_sanguin->date_prelevement, 
-            'banque_sang_id' => $poche_sanguin->banque_sang_id,  
+            'banque_sang_id' => $poche_sanguin->banque_sang_id, 
+            'rendez_vouse_id' => $poche_sanguin->rendez_vouse_id,
         ];
 
         // Si le donneur_externe_id n'est pas null, ajouter les informations du donneur externe
