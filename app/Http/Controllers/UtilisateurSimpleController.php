@@ -7,6 +7,7 @@ use App\Models\UtilisateurSimple;
 //use Illuminate\Support\Facades\Mail;
 use App\Http\Requests\StoreUtilisateurSimpleRequest;
 use App\Http\Requests\UpdateUtilisateurSimpleRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UtilisateurSimpleController extends Controller
 {
@@ -64,5 +65,35 @@ class UtilisateurSimpleController extends Controller
     public function destroy(UtilisateurSimple $utilisateurSimple)
     {
         //
+    }
+
+    public function showGamification()
+    {
+       // Obtenir l'utilisateur connecté
+       $user = Auth::user();
+
+       // Vérifiez que l'utilisateur est bien un utilisateur simple (role_id = 3)
+       if ($user->role_id !== 3) {
+        return response()->json(['error' => 'Accès non autorisé.'], 403);
+    }
+
+        // Récupérer l'utilisateur simple lié à cet utilisateur
+        $utilisateur = UtilisateurSimple::where('user_id', $user->id)
+            ->withCount(['rendezVous as nombre_de_dons' => function ($query) {
+                $query->where('etat', true); // Compter uniquement les dons effectifs
+            }])
+            ->first();
+
+        if (!$utilisateur) {
+            return response()->json(['error' => 'Utilisateur simple non trouvé.'], 404);
+        }
+
+        return response()->json([
+            'nom' => $utilisateur->nom,
+            'prenom' => $utilisateur->prenom,
+            'nombre_de_dons' => $utilisateur->nombre_de_dons,
+            'niveau_gamification' => $utilisateur->gamification_level,
+            'badge_code' => strtolower($utilisateur->gamification_level), // par ex., 'platine', 'or'
+        ]);
     }
 }

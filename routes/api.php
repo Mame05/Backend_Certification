@@ -10,8 +10,7 @@ use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\PocheSanguinController;
 use App\Http\Controllers\Notification1Controller;
 use App\Http\Controllers\DonneurExterneController;
-
-
+use App\Http\Controllers\UtilisateurSimpleController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -53,9 +52,8 @@ Route::get('/rendezvous/{id}', [RendezVousController::class, 'getRendezVousWithA
 // Valider un don
 Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtatAddPoche']);
 
-
-
-
+// Gammification 
+Route::get('/utilisateur-simple/gamification', [UtilisateurSimpleController::class, 'showGamification']);
 
 // Banque de sang
 Route::apiResource('banque-sangs', BanqueSangController::class);
@@ -64,8 +62,6 @@ Route::apiResource('banque-sangs', BanqueSangController::class);
 Route::apiResource('poche-sanguins', PocheSanguinController::class);
 Route::put('/poche-sanguin/{id}', [PocheSanguinController::class, 'updatePoche']);
 Route::get('/poches-par-mois', [PocheSanguinController::class, 'getPochesSanguinsParMois']);
-
-
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);
