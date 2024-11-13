@@ -418,6 +418,7 @@ elseif ($user->role_id == 3) {
             'date_naiss' => $utilisateur->date_naiss,
             'nombre_de_dons' => $utilisateur->nombre_de_dons,
             'dernier_don' => $dernierDonDate,
+            'photo' => $utilisateur->photo,
         ]
     ]);
 }

@@ -9,6 +9,7 @@ use App\Models\UtilisateurSimple;
 use App\Models\Structure;
 use Illuminate\Validation\Rule; // Importation correcte de Rule
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 
 class ApiController extends Controller
 {
@@ -320,7 +321,16 @@ public function updateProfile(Request $request)
     if ($validator->fails()) {
         return response()->json(['error' => $validator->errors()], 422);
     }
+    if ($request->hasFile('photo')) {
+        // Suppression de l'ancienne photo_profile s'il y en a une
+        if ($utilisateur_simple->photo) {
+            Storage::disk('public')->delete($utilisateur_simple->photo);
+        }
 
+        // Stockage de la nouvelle photo
+        $photo = $request->file('photo');
+        $utilisateur_simple->photo = $photo->store('photos', 'public');
+    }
     // Mettre à jour les informations de l'utilisateur simple
     $utilisateur_simple->update([
         'nom' => $request->nom,
@@ -329,7 +339,7 @@ public function updateProfile(Request $request)
         'adresse' => $request->adresse,
         'sexe' => $request->sexe,
         'date_naiss' => $request->date_naiss,
-        'photo' => $request->hasFile('photo') ? $request->file('photo')->store('photos','public') : $utilisateur_simple->photo, // Gérer l'upload de la photo
+        'photo' => $utilisateur_simple->photo,
         'profession' => $request->profession,
         'groupe_sanguin' => $request->groupe_sanguin,
     ]);
