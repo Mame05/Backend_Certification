@@ -254,6 +254,7 @@ foreach ($utilisateursSimples as $utilisateur_simple) {
                     'utilisateur_id' => $rendezVous->utilisateurSimple->id, // ID de l'utilisateur
                     'nom' => $rendezVous->utilisateurSimple->nom,
                     'prenom' => $rendezVous->utilisateurSimple->prenom,
+                    'telephone' => $rendezVous->utilisateurSimple->telephone,
                     'etat' => $rendezVous->etat, // État du rendez-vous
                 ];
             });
