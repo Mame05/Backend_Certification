@@ -36,21 +36,21 @@ Route::apiResource('annonces', AnnonceController::class);
 // Notifications
 Route::get('notifications1', [Notification1Controller::class, 'index']);
 Route::get('notifications1/unread', [Notification1Controller::class, 'unread']);
-Route::put('notifications1/{id}/read', [Notification1Controller::class, 'markAsRead']);
+Route::put('notifications1/{id}/read', [Notification1Controller::class, 'markAsRead']); //ok
 Route::delete('notifications1/{id}', [Notification1Controller::class, 'destroy']);
 
 
 // Rendez-vous
-Route::post('annonces/{annonceId}/inscrire', [RendezVousController::class, 'inscrire']);
-Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annulerInscription']);
+Route::post('annonces/{annonceId}/inscrire', [RendezVousController::class, 'inscrire']);//ok
+Route::patch('/rendez-vous/{id}/annuler', [RendezVousController::class, 'annulerInscription']);//ok
 Route::get('/user/inscriptions', [RendezVousController::class, 'getInscriptions']);// permet d'obtenir les inscriptions d'un utilisateur
 Route::delete('/rendez-vous/{id}/supprimer', [RendezVousController::class, 'supprimerHistorique']);
-Route::get('/structure/utilisateurs-inscriptions/{structureId?}', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);
+Route::get('/structure/utilisateurs-inscriptions/{structureId?}', [RendezVousController::class, 'getUsersWithCompletedInscriptions']);//ok
 // Route pour récupérer les détails du rendez-vous avec les dates de l'annonce
-Route::get('/rendezvous/{id}', [RendezVousController::class, 'getRendezVousWithAnnonceDates']);
+Route::get('/rendezvous/{id}', [RendezVousController::class, 'getRendezVousWithAnnonceDates']);//ok
 
 // Valider un don
-Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtatAddPoche']);
+Route::put('/rendez-vous/{rendezVous}/etat', [RendezVousController::class, 'updateEtatAddPoche']);//ok
 
 // Gammification 
 Route::get('/utilisateur-simple/gamification', [UtilisateurSimpleController::class, 'showGamification']);
@@ -65,7 +65,7 @@ Route::get('/poches-par-mois', [PocheSanguinController::class, 'getPochesSanguin
 
 // Donneur externe
 Route::apiResource('donneur-externes', DonneurExterneController::class);
-Route::get('/structure/donneurs/{structureId?}', [ DonneurExterneController::class, 'getDonneursParStructure']);
+Route::get('/structure/donneurs/{structureId?}', [ DonneurExterneController::class, 'getDonneursParStructure']); //ok
 
 
 
