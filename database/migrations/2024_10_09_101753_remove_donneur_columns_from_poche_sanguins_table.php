@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('poche_sanguins', function (Blueprint $table) {
-            $table->dropColumn([
-                'section_id',            
-            ]);
+             // Supprimer la contrainte de clé étrangère
+            $table->dropForeign('poche_sanguins_section_id_foreign');
+            $table->dropColumn('section_id');
         });
     }
 
@@ -24,7 +24,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('poche_sanguins', function (Blueprint $table) {
-            //
+             // Ajouter la colonne section_id
+             $table->unsignedBigInteger('section_id')->nullable();
+
+             // Rétablir la clé étrangère
+             $table->foreign('section_id')->references('id')->on('sections')->onDelete('cascade');
         });
     }
 };

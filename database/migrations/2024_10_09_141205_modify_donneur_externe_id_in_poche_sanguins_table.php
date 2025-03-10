@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('poche_sanguins', function (Blueprint $table) {
-            $table->foreignId('donneur_externe_id')->nullable()->change();
+            if (Schema::hasColumn('poche_sanguins', 'donneur_externe_id')) {
+                // Modifier la colonne pour qu'elle soit nullable
+                $table->unsignedBigInteger('donneur_externe_id')->nullable()->change();
+            }
         });
     }
 
@@ -22,7 +25,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('poche_sanguins', function (Blueprint $table) {
-            $table->foreignId('donneur_externe_id')->nullable(false)->change();
+            if (Schema::hasColumn('poche_sanguins', 'donneur_externe_id')) {
+                // Annuler la modification et rendre la colonne non nullable
+                $table->unsignedBigInteger('donneur_externe_id')->nullable(false)->change();
+            }
         });
     }
 };

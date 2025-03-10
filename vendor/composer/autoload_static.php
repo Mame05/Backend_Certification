@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc
+class ComposerStaticInitc248f0b31884de161b4ca3c3fc27f34f
 {
     public static $files = array (
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
@@ -365,8 +365,8 @@ class ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc
         ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
+            0 => __DIR__ . '/..' . '/psr/http-message/src',
+            1 => __DIR__ . '/..' . '/psr/http-factory/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -1879,7 +1879,9 @@ class ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc
         'Illuminate\\Console\\Scheduling\\CommandBuilder' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/CommandBuilder.php',
         'Illuminate\\Console\\Scheduling\\Event' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/Event.php',
         'Illuminate\\Console\\Scheduling\\EventMutex' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/EventMutex.php',
+        'Illuminate\\Console\\Scheduling\\ManagesAttributes' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/ManagesAttributes.php',
         'Illuminate\\Console\\Scheduling\\ManagesFrequencies' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/ManagesFrequencies.php',
+        'Illuminate\\Console\\Scheduling\\PendingEventAttributes' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/PendingEventAttributes.php',
         'Illuminate\\Console\\Scheduling\\Schedule' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/Schedule.php',
         'Illuminate\\Console\\Scheduling\\ScheduleClearCacheCommand' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/ScheduleClearCacheCommand.php',
         'Illuminate\\Console\\Scheduling\\ScheduleFinishCommand' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Console/Scheduling/ScheduleFinishCommand.php',
@@ -7334,9 +7336,9 @@ class ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit789f084a17d206452c8e42c5e1bb2bfc::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc248f0b31884de161b4ca3c3fc27f34f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc248f0b31884de161b4ca3c3fc27f34f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitc248f0b31884de161b4ca3c3fc27f34f::$classMap;
 
         }, null, ClassLoader::class);
     }
