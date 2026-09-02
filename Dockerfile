@@ -1,10 +1,11 @@
-FROM php:8.3
+FROM php:8.3-cli
 
 RUN apt-get update -y && apt-get install -y \
     openssl \
     zip \
     unzip \
     git \
+    curl \
     libonig-dev \
     libzip-dev \
     libpng-dev \
@@ -12,26 +13,28 @@ RUN apt-get update -y && apt-get install -y \
     pkg-config \
     libssl-dev \
     mariadb-client \
-    && docker-php-ext-install pdo_mysql mbstring
+    && docker-php-ext-install pdo_mysql mbstring \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php \
+    -- --install-dir=/usr/local/bin \
+    --filename=composer
 
 WORKDIR /app
 
 COPY . /app
 
+RUN composer install \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --no-dev
+
 RUN chown -R www-data:www-data /app
 
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader --verbose
+EXPOSE 10000
 
-RUN composer require php-open-source-saver/jwt-auth
-
-CMD php artisan vendor:publish --provider="PHPOpenSourceSaver\JWTAuth\Providers\LaravelServiceProvider" && \
-    php artisan storage:link && \
-    php artisan key:generate && \
-    php artisan migrate:refresh && \
-    php artisan db:seed && \
-    php artisan jwt:secret && \
-    php artisan serve --host=0.0.0.0 --port=8181
-
-EXPOSE 8181
+CMD php artisan storage:link || true; \
+    php artisan migrate --force; \
+    php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
