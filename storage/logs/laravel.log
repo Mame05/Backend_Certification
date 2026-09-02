@@ -24214,3 +24214,35 @@ Error Output:
 #53 C:\\xampp\\htdocs\\Backend_Certification\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('C:\\\\xampp\\\\htdocs...')
 #54 {main}
 "} 
+[2025-03-15 16:55:27] local.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\composer\\ClassLoader.php:429)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-15 16:56:04] local.ERROR: Maximum execution time of 30 seconds exceeded {"userId":"2","exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php:35)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 12:52:29] local.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\composer\\ClassLoader.php:429)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 12:53:32] local.ERROR: Maximum execution time of 30 seconds exceeded {"userId":"2","exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\app\\Models\\User.php:12)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 13:38:52] local.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\EloquentUserProvider.php:11)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 13:39:28] local.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\composer\\ClassLoader.php:429)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 13:39:59] local.ERROR: Maximum execution time of 30 seconds exceeded {"userId":"2","exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\composer\\ClassLoader.php:429)
+[stacktrace]
+#0 {main}
+"} 
+[2025-03-17 13:40:29] local.ERROR: Maximum execution time of 30 seconds exceeded {"userId":2,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:\\xampp\\htdocs\\Backend_Certification\\vendor\\laravel\\framework\\src\\Illuminate\\Support\\Onceable.php:75)
+[stacktrace]
+#0 {main}
+"} 

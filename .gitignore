@@ -24,3 +24,4 @@ rr
 vendor/
 /bootstrap/cache
 
+/storage/logs/*.log
