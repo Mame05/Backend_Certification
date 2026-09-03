@@ -25,6 +25,8 @@ WORKDIR /app
 
 COPY . /app
 
+RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
+
 RUN composer install \
     --no-interaction \
     --prefer-dist \
